@@ -1,6 +1,4 @@
 ﻿using BookingHotel.Core.Models.Domain;
-using BookingHotel.Core.Models.DTOs;
-using MimeKit;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,11 +6,11 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace BookingHotel.Core.Services.Communication {
-    public class HotelResponse : BaseResponse {
-        public Hotel Hotel { get; private set; }
+    public class CityResponse : BaseResponse {
+        public City City { get; private set; }
 
-        private HotelResponse(bool success, string message, Hotel hotel) : base(success, message) {
-            Hotel = hotel;
+        private CityResponse(bool success, string message, City city) : base(success, message) {
+            City = city;
         }
 
         /// <summary>
@@ -20,13 +18,13 @@ namespace BookingHotel.Core.Services.Communication {
         /// </summary>
         /// <param name="category">Saved category.</param>
         /// <returns>Response.</returns>
-        public HotelResponse(Hotel hotel, string message) : this(true, message, hotel) { }
+        public CityResponse(City city, string message) : this(true, message, city) { }
 
         /// <summary>
         /// Creates am error response.
         /// </summary>
         /// <param name="message">Error message.</param>
         /// <returns>Response.</returns>
-        public HotelResponse(string message) : this(false, message, null) { }
+        public CityResponse(string message) : this(false, message, null) { }
     }
 }

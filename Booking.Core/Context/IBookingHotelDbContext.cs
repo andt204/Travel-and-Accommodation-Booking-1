@@ -13,7 +13,7 @@ namespace BookingHotel.Core.Context
         DbSet<Hotel> Hotels {  get; set; }
         DbSet<HotelAmentities> HotelAents { get; set; }
         DbSet<Amenity> Amenities {  get; set; }
-        DbSet<City> Citys { get; set; }
+        DbSet<City> Cities { get; set; }
         DbSet<Room> Rooms { get; set; }
         DbSet<Gallery> Gallerys { get; set; }
         DbSet<RoomClasses> RoomsClasses { get; set;}
