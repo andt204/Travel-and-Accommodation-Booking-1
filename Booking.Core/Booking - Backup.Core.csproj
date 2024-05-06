@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Context\" />
+    <Folder Include="Infrastructure\" />
+    <Folder Include="IRepositories\" />
+    <Folder Include="Migrations\" />
+    <Folder Include="Mapping\" />
+    <Folder Include="Models\NewFolder\" />
+    <Folder Include="Services\" />
+    <Folder Include="Repositories\" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,20 @@
+# Visual Studio files
+.vs/
+.vscode/
+
+# User-specific files
+*.suo
+*.user
+*.csproj.user
+
+# Build directories
+*/bin/
+*/obj/
+
+# Other build files
+*.dll
+*.pdb
+
+# NuGet Packages
+*.nuget.props
+*.nuget.targets
