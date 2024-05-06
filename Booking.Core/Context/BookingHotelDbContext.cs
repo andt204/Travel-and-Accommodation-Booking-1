@@ -14,7 +14,7 @@ namespace BookingHotel.Core.Context
         public DbSet<Hotel> Hotels { get  ; set  ; }
         public DbSet<HotelAmentities> HotelAents { get  ; set  ; }
         public DbSet<Amenity> Amenities { get  ; set  ; }
-        public DbSet<City> Citys { get  ; set  ; }
+        public DbSet<City> Cities { get  ; set  ; }
         public DbSet<Room> Rooms { get  ; set  ; }
         public DbSet<Gallery> Gallerys { get  ; set  ; }
         public DbSet<RoomClasses> RoomsClasses { get  ; set  ; }

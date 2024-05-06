@@ -7,13 +7,13 @@ using BookingHotel.Core.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Booking.Controllers {
-    [Route("/api/[controller]")]
+    [Route("/api/hotels")]
     public class HotelsController : Controller {
 
-        private readonly IHotelServices _hotelService;
+        private readonly IHotelService _hotelService;
         private readonly IMapper _mapper;
 
-        public HotelsController(IHotelServices hotelService, IMapper mapper) {
+        public HotelsController(IHotelService hotelService, IMapper mapper) {
             _hotelService = hotelService;
             _mapper = mapper;
         }
@@ -50,26 +50,41 @@ namespace Booking.Controllers {
                 return BadRequest(result.Message);
 
             var hotelDto = _mapper.Map<Hotel, HotelDto>(result.Hotel);
-            return Ok(hotelDto);
+            return Ok(result);
         }
 
-        //[HttpDelete("{id}")]
-        //public async Task<IActionResult> DeleteAsync(int id) {
-        //    var result = await _hotelService.DeleteAsync(id);
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteAsync(int id) {
+            var result = await _hotelService.DeleteAsync(id);
 
-        //    if (!result.Success)
-        //        return BadRequest(result.Message);
+            if (!result.Success)
+                return BadRequest(result.Message);
 
-        //    var hotelDto = _mapper.Map<Hotel, HotelDto>(result.Hotel);
-        //    return Ok(hotelDto);
-        //}
-        //public async Task<IActionResult> CancelBooking(int id) {
-        //    var result = _hotelService.RemoveAsync(id);
-        //    if (result == null) {
-        //        return NotFound();
-        //    }
-        //    return Ok(result);
-        //}
+            var hotelDto = _mapper.Map<Hotel, HotelDto>(result.Hotel);
+            return Ok(result);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetByIdAsync(int id) {
+            var result = await _hotelService.FindByIdAsync(id);
+
+            if (!result.Success)
+                return NotFound(result.Message);
+
+            var hotelDto = _mapper.Map<Hotel, HotelDto>(result.Hotel);
+            return Ok(result);
+        }
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchAsync([FromQuery] HotelSearchDto hotelSearch) {
+            if (hotelSearch == null)
+                return BadRequest("Search criteria cannot be empty.");
+
+            var hotels = await _hotelService.SearchAsync(hotelSearch.Keyword, hotelSearch.MinCapacity, hotelSearch.MaxCapacity);
+
+            var hotelDtos = _mapper.Map<IEnumerable<Hotel>, IEnumerable<HotelDto>>(hotels);
+
+            return Ok(hotelDtos);
+        }
     }
 }
 

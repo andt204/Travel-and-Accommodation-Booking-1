@@ -8,11 +8,12 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace BookingHotel.Core.IServices {
-    public interface IHotelServices {
+    public interface IHotelService {
         Task<IEnumerable<Hotel>> ListAsync();
         Task<HotelResponse> SaveAsync(Hotel hotel);
         Task<HotelResponse> UpdateAsync(int id, Hotel hotel);
-        //Task<HotelResponse> DeleteAsync(int id);
-        //Task RemoveAsync(int Id);
+        Task<HotelResponse> DeleteAsync(int id);
+        Task<HotelResponse> FindByIdAsync(int id);
+        Task<IEnumerable<Hotel>> SearchAsync(string keyword = null, int? minCapacity = null, int? maxCapacity = null);
     }
 }

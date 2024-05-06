@@ -31,17 +31,20 @@ namespace BookingHotel.Core.Repositories {
             _context.Hotels.Update(hotel);
         }
 
-        //public void Remove(Hotel hotel) {
-        //    _context.Hotels.Remove(hotel);
-        //}
-
-        public async Task RemoveAsync(int Id) {
-            var hotelFind = await _context.Hotels.FindAsync(Id);
-            if (hotelFind == null) {
-                throw new Exception("Hotel not found");
-            }
-            _context.Hotels.Remove(hotelFind);
+        public void Remove(Hotel hotel) {
+            _context.Hotels.Remove(hotel);
         }
+        public async Task<IEnumerable<Hotel>> SearchAsync(string keyword, int minCapacity, int maxCapacity) {
 
+            var query = _context.Hotels.Where(h => h.Name.Contains(keyword) || h.Description.Contains(keyword) || h.Address.Contains(keyword));
+
+            if (minCapacity > 0)
+                query = query.Where(h => h.NumOfRoom >= minCapacity);
+
+            if (maxCapacity > 0)
+                query = query.Where(h => h.NumOfRoom <= maxCapacity);
+
+            return await query.ToListAsync();
+        }
     }
 }
