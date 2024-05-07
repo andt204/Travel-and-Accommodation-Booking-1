@@ -94,12 +94,7 @@ namespace BookingHotel.Core.Services
                     if (roles != null)
                     {
                         //generate token
-                        var token = await _tokenRepository.GenerateToken(user, roles.ToList());
-
-                        var userToken = new LoginResponseDTO
-                        {
-                            Token = token
-                        };
+                        var token = _tokenRepository.GenerateToken(user, roles.ToList());
 
                         return new LoginResponse(true, token!, "Login success", roles.ToArray());
                         //return Object.ReferenceEquals(userToken, null) ? "Login success" : "Login failed";

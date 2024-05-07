@@ -2,6 +2,7 @@
 using BookingHotel.Core.IServices;
 using BookingHotel.Core.Models.Domain;
 using BookingHotel.Core.Models.DTOs;
+using BookingHotel.Core.Models.UserRoles;
 using BookingHotel.Core.Services.Communication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -10,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BookingHotel.Controllers
 {
     [Route("api/user/bookings")]
+    [Authorize]
     [ApiController]
     public class UserBookingController : ControllerBase
     {
@@ -20,7 +22,7 @@ namespace BookingHotel.Controllers
             _mapper = mapper;
             _bookingService = bookingService;
         }
-
+        [Authorize(Roles = Roles.User)]
         [HttpGet]
         public async Task<IActionResult> GetUserBookings()
         {
@@ -35,6 +37,7 @@ namespace BookingHotel.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = Roles.User)]
         public async Task<IActionResult> CreateBooking([FromBody] BookingDTO booking)
         {
             // Xử lý yêu cầu tạo mới đặt vé của người dùng
@@ -51,6 +54,7 @@ namespace BookingHotel.Controllers
 
         [HttpDelete]
         [Route("{id}")]
+        [Authorize(Roles = Roles.User)]
         public async Task<IActionResult> CancelBooking(int id)
         {
             var result = _bookingService.RemoveAsync(id);
@@ -77,6 +81,7 @@ namespace BookingHotel.Controllers
 
         [HttpGet]
         [Route("{id}/invoice")]
+        [Authorize(Roles = Roles.User)]
         public async Task<IActionResult> GetBookingInvoice(int id)
         {
             // Xử lý yêu cầu lấy hóa đơn của đặt vé của người dùng theo ID

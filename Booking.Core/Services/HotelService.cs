@@ -5,7 +5,6 @@ using BookingHotel.Core.Models.Domain;
 using BookingHotel.Core.Models.DTOs;
 using BookingHotel.Core.Repositories;
 using BookingHotel.Core.Services.Communication;
-using BookingHotel.Core.Models.Domain;
 
 namespace BookingHotel.Core.Services {
     public class HotelService : IHotelService {

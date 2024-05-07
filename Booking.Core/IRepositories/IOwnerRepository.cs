@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using BookingHotel.Core.Models.Domain;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace BookingHotel.Core.IRepositories
 {
-    public interface ITokenRepository
+    public interface IOwnerRepository
     {
-        string GenerateToken(IdentityUser user, List<string> roles);
+      
     }
 }

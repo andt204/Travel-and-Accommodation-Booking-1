@@ -2,10 +2,13 @@
 using BookingHotel.Core.IServices;
 using BookingHotel.Core.Models.Domain;
 using BookingHotel.Core.Models.DTOs;
+using BookingHotel.Core.Models.UserRoles;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BookingHotel.Controllers {
     [Route("/api/cities")]
+    [Authorize]
     public class CitiesController : Controller {
         private readonly ICityService _cityService;
         private readonly IMapper _mapper;
@@ -14,13 +17,14 @@ namespace BookingHotel.Controllers {
             _cityService = cityService;
             _mapper = mapper;
         }
+        [Authorize(Roles = Roles.User + ", " + Roles.Owner)]
         [HttpGet]
         public async Task<IEnumerable<CityDto>> GetAllAsync() {
             var cities = await _cityService.ListAsync();
             var resources = _mapper.Map<IEnumerable<City>, IEnumerable<CityDto>>(cities);
             return resources;
         }
-
+        [Authorize(Roles = Roles.Owner)]
         [HttpPost]
         public async Task<IActionResult> PostAsync([FromBody] SaveCityDto resource) {
             //if (!ModelState.IsValid)
@@ -36,6 +40,7 @@ namespace BookingHotel.Controllers {
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = Roles.Owner)]
         public async Task<IActionResult> PutAsync(int id, [FromBody] SaveCityDto resource) {
             //if (!ModelState.IsValid)
             //    return BadRequest(ModelState.GetErrorMessages());
@@ -51,6 +56,7 @@ namespace BookingHotel.Controllers {
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = Roles.Owner)]
         public async Task<IActionResult> DeleteAsync(int id) {
             var result = await _cityService.DeleteAsync(id);
 
