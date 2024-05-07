@@ -42,7 +42,8 @@ namespace BookingHotel
             builder.Services.AddIdentity<User, IdentityRole>()
                 .AddEntityFrameworkStores<BookingHotelDbContext>()
                 .AddSignInManager()
-                .AddRoles<IdentityRole>();
+                .AddRoles<IdentityRole>()
+                .AddDefaultTokenProviders();
 
             builder.Services.AddAuthentication(options =>
             {
