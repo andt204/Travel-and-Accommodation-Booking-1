@@ -7,7 +7,7 @@ namespace BookingHotel.Controllers
     [Route("api/amenities/[Action]")]
     public class AmenitiesController : ControllerBase
     {
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "User")]
         [HttpGet]
         public IActionResult GetAll()
         {

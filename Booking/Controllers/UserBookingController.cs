@@ -20,7 +20,7 @@ namespace BookingHotel.Controllers
             _mapper = mapper;
             _bookingService = bookingService;
         }
-
+        [Authorize(Roles = "User")]
         [HttpGet]
         public async Task<IActionResult> GetUserBookings()
         {

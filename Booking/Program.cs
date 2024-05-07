@@ -1,4 +1,3 @@
-
 using BookingHotel.Core.Context;
 using BookingHotel.Core.IRepositories;
 using BookingHotel.Core.IServices;
@@ -9,12 +8,18 @@ using BookingHotel.Core.Repositories;
 using BookingHotel.Core.Services;
 using BookingHotel.Core.Utilities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Builder;
 using System.Text;
+using System;
+using System.Threading.Tasks;
+using Swashbuckle.AspNetCore.Filters;
 
 namespace BookingHotel
 {
@@ -27,45 +32,47 @@ namespace BookingHotel
             // Add services to the container.
 
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            //config swagger to show api and token verify 
-            builder.Services.AddSwaggerGen(options =>
-            {
-                var securityScheme = new OpenApiSecurityScheme
-                {
-                    Name = "JWT Authentication",
-                    Description = "Enter a valid JWT bearer token",
-                    In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.Http,
-                    Scheme = "bearer",
-                    BearerFormat = "JWT",
-                    Reference = new OpenApiReference
-                    {
-                        Id = JwtBearerDefaults.AuthenticationScheme,
-                        Type = ReferenceType.SecurityScheme
-                    }
-                };
-
-                options.AddSecurityDefinition(securityScheme.Reference.Id, securityScheme);
-                options.AddSecurityRequirement(new OpenApiSecurityRequirement
-                {
-                    {securityScheme, new string[] {} }
-                });
-            });
-
-
-
-            //config database 
-            string connnectionString = builder.Configuration.GetConnectionString("SQLConnection");
 
             builder.Services.AddDbContext<BookingHotelDbContext>(opts =>
             {
-                // Set up connection string for db context
-                opts.UseSqlServer(connnectionString);
+                opts.UseSqlServer(builder.Configuration.GetConnectionString("SQLConnection"));
             });
 
-            //add scope dependency injection
+            builder.Services.AddIdentity<User, IdentityRole>()
+                .AddEntityFrameworkStores<BookingHotelDbContext>()
+                .AddSignInManager()
+                .AddRoles<IdentityRole>();
+
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidateLifetime = true,
+                    ValidIssuer = builder.Configuration["JWT:ValidIssuer"],
+                    ValidAudience = builder.Configuration["JWT:ValidAudience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"]!))
+                };
+            });
+
+            builder.Services.AddSwaggerGen(options =>
+            {
+                options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey
+                });
+                options.OperationFilter<SecurityRequirementsOperationFilter>();
+            });
+
             builder.Services.AddScoped<IBookingRepository, BookingRepository>();
             builder.Services.AddScoped<IBookingService, BookingService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
@@ -74,51 +81,14 @@ namespace BookingHotel
             builder.Services.AddTransient<ISendEmailService, SendEmailService>();
             builder.Services.AddScoped<IHotelRepository, HotelRepository>();
             builder.Services.AddScoped<IHotelService, HotelService>();
-            builder.Services.AddScoped<ICityRepository, CityRepository>();
-            builder.Services.AddScoped<ICityService, CityService>();
 
-            //config mapping
             builder.Services.AddAutoMapper(typeof(ModelToResourceProfile));
 
-            //config mail setting service
             builder.Services.AddOptions();
             var MailSettings = builder.Configuration.GetSection("MailSettings");
             builder.Services.Configure<MailSettings>(MailSettings);
 
-            //config for identity
-
-            var validIssuer = builder.Configuration.GetValue<string>("JWT:ValidIssuer");
-            var validAudience = builder.Configuration.GetValue<string>("JWT:ValidAudience");
-            var symmetricSecurityKey = builder.Configuration.GetValue<string>("JWT:Secret");
-
-            builder.Services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(options =>
-            {
-                options.IncludeErrorDetails = true;
-                options.TokenValidationParameters = new TokenValidationParameters()
-                {
-                    ClockSkew = TimeSpan.FromMinutes(5), // Adjust as needed
-                    ValidateIssuer = true,  
-                    ValidateAudience = true,
-                    ValidateLifetime = true,    
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = validIssuer,
-                    ValidAudience = validAudience,
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(symmetricSecurityKey)
-                    ),
-                };
-            });
-
-
-            builder.Services.AddIdentity<User, IdentityRole>()
-                .AddEntityFrameworkStores<BookingHotelDbContext>()
-                .AddDefaultTokenProviders();
+            
             builder.Services.AddRazorPages();
 
             builder.Services.Configure<IdentityOptions>(options =>
@@ -130,66 +100,54 @@ namespace BookingHotel
                 options.Password.RequiredLength = 6;
                 options.Password.RequiredUniqueChars = 1;
 
-                // Lockout settings.
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
                 options.Lockout.MaxFailedAccessAttempts = 5;
                 options.Lockout.AllowedForNewUsers = true;
 
-                // User settings.
                 options.User.AllowedUserNameCharacters =
                 "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
                 options.User.RequireUniqueEmail = false;
 
-                //email setting
-                options.SignIn.RequireConfirmedEmail = true;            // Cấu hình xác thực địa chỉ email (email phải tồn tại)
-                options.SignIn.RequireConfirmedPhoneNumber = false;     // Xác thực số điện thoại
+                options.SignIn.RequireConfirmedEmail = true;
+                options.SignIn.RequireConfirmedPhoneNumber = false;
                 options.SignIn.RequireConfirmedAccount = true;
             });
 
-            builder.Services.ConfigureApplicationCookie(options =>
+           /* builder.Services.ConfigureApplicationCookie(options =>
             {
-                // Cookie settings
-                options.Cookie.HttpOnly = true;
-                options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
-
-                options.LoginPath = "/api/Auth/Login";
-
-                options.LogoutPath = "/api/Auth/Register";
-                options.SlidingExpiration = true;
-            });
-
-            builder.Services.AddSession(options =>
-            {
-                options.IdleTimeout = TimeSpan.FromMinutes(30);
-                options.Cookie.HttpOnly = true;
-            });
+                options.Events.OnRedirectToAccessDenied =
+                    options.Events.OnRedirectToLogin = context =>
+                    {
+                        if (context.Request.Method != "GET")
+                        {
+                            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                            return Task.CompletedTask;
+                        }
+                        context.Response.Redirect(context.RedirectUri);
+                        return Task.CompletedTask;
+                    };
+            });*/
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-
-            app.UseAuthentication();
-
             app.UseHttpsRedirection();
 
+          //  app.UseRouting();
+            app.UseAuthentication(); // this one first
             app.UseAuthorization();
-
             /*app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllerRoute(
-                  name: "areas",
-                  pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
-                );
+                endpoints.MapControllers();
             });*/
 
 
-            app.MapControllers();
 
+            app.MapControllers();
             app.MapRazorPages();
 
             app.Run();
