@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace BookingHotel.Core.Repositories
 {
-    public class RoomRepository : BaseRepository, IRoomRepository
+    public class RoomRepository : GenericRepository<Room>, IRoomRepository
     {
         public RoomRepository(BookingHotelDbContext context) : base(context)
         {

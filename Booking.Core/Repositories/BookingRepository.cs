@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace BookingHotel.Core.Repositories
 {
-    public class BookingRepository : BaseRepository, IBookingRepository
+    public class BookingRepository : GenericRepository<Booking>, IBookingRepository
     {
         public BookingRepository(BookingHotelDbContext context) : base(context)
         {

@@ -1,6 +1,7 @@
 ﻿using BookingHotel.Core.Models.Domain;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,7 +27,8 @@ namespace BookingHotel.Core.Context
         public BookingHotelDbContext(DbContextOptions<BookingHotelDbContext> options) : base(options) { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
-            // You can config connection string for entity framework in here
+            optionsBuilder.UseSqlServer("Server=localhost;Initial Catalog=BookingHotel;Integrated Security=True;Trust Server Certificate=True; User ID=sa;Password=123;")
+        .LogTo(Console.WriteLine, LogLevel.Information);
             base.OnConfiguring(optionsBuilder);
         }
 
