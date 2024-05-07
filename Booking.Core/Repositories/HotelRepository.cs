@@ -11,27 +11,27 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace BookingHotel.Core.Repositories {
-    public class HotelRepository : BaseRepository, IHotelRepository {
+    public class HotelRepository : GenericRepository<Hotel>, IHotelRepository {
         public HotelRepository(BookingHotelDbContext context) : base(context) {
         }
 
-        public async Task<IEnumerable<Hotel>> ListAsync() {
+        public override async Task<IEnumerable<Hotel>> ListAsync() {
             return await _context.Hotels.ToListAsync();
         }
 
-        public async Task AddAsync(Hotel hotel) {
+        public override async Task AddAsync(Hotel hotel) {
             await _context.Hotels.AddAsync(hotel);
         }
 
-        public async Task<Hotel> FindByIdAsync(int id) {
+        public override async Task<Hotel> FindByIdAsync(int id) {
             return await _context.Hotels.FindAsync(id);
         }
 
-        public void Update(Hotel hotel) {
+        public override void Update(Hotel hotel) {
             _context.Hotels.Update(hotel);
         }
 
-        public void Remove(Hotel hotel) {
+        public override void Remove(Hotel hotel) {
             _context.Hotels.Remove(hotel);
         }
         public async Task<IEnumerable<Hotel>> SearchAsync(string keyword, int minCapacity, int maxCapacity) {
