@@ -10,10 +10,10 @@ using System.Threading.Tasks;
 namespace BookingHotel.Core.IRepositories {
     public interface IHotelRepository {
         Task<IEnumerable<Hotel>> ListAsync();
-        //Task AddAsync(SaveHotelDto hotel);
         Task AddAsync(Hotel hotel);
         Task<Hotel> FindByIdAsync(int id);
         void Update(Hotel hotel);
-        Task RemoveAsync(int Id);
+        void Remove(Hotel hotel);
+        Task<IEnumerable<Hotel>> SearchAsync(string keyword, int minCapacity, int maxCapacity);
     }
 }

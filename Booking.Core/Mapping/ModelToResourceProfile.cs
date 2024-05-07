@@ -10,6 +10,8 @@ namespace BookingHotel.Core.Mapping {
             CreateMap<Booking, BookingDTO>().ReverseMap();
             CreateMap<Hotel, HotelDto>().ReverseMap();
             CreateMap<Hotel, SaveHotelDto>().ReverseMap();
+            CreateMap<City, CityDto>().ReverseMap();
+            CreateMap<City, SaveCityDto>().ReverseMap();
         }
     }
 }
