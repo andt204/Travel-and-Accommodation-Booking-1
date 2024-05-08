@@ -13,8 +13,15 @@ namespace BookingHotel.Core.Repositories {
         public CityRepository(BookingHotelDbContext context) : base(context) {
         }
 
-        public override async Task<IEnumerable<City>> ListAsync() {
-            return await _context.Cities.ToListAsync();
+        public async Task<IEnumerable<City>> ListAsync(int pageSize, int pageNumber) {
+            var cities = _context.Cities.AsQueryable();
+
+            cities = _context.Cities
+                .OrderBy(c => c.Name)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize);
+
+            return await cities.ToListAsync();
         }
 
         public override async Task AddAsync(City city) {

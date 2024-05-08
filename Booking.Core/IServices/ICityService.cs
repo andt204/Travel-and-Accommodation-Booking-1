@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace BookingHotel.Core.IServices {
     public interface ICityService {
-        Task<IEnumerable<City>> ListAsync();
+        Task<IEnumerable<City>> ListAsync(int pageSize, int pageNumber);
         Task<CityResponse> SaveAsync(City city);
         Task<CityResponse> UpdateAsync(int id, City city);
         Task<CityResponse> DeleteAsync(int id);

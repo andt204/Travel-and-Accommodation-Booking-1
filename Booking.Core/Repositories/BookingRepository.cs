@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Security.Claims;
 
 namespace BookingHotel.Core.Repositories
 {
@@ -17,12 +18,12 @@ namespace BookingHotel.Core.Repositories
         {
         }
 
-        public async Task CreateBooking(BookingDTO booking)
+        public async Task CreateBookingAsync(Booking booking)
         {
             var bookingEntity = new Booking
             {
                 StartDate = booking.StartDate,
-                EndDate = booking.EndDate,
+                EndDate = booking.EndDate,  
                 status = booking.status,
                 RoomId = booking.RoomId,
                 UserId = booking.UserId
@@ -30,14 +31,30 @@ namespace BookingHotel.Core.Repositories
             await _context.Bookings.AddAsync(bookingEntity);
         }
 
-        public async Task<IEnumerable<Booking>> GetAllAsync()
+        public async Task<IEnumerable<Booking>> GetAllAsync(int pageSize, int pageNumber, string user)
         {
-            return await _context.Bookings.ToListAsync();
+            if (user == null)
+            {
+                return null;
+            }
+
+            var bookings = _context.Bookings
+                .Where(x => x.UserId == user)
+                .OrderBy(c => c.StartDate)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize);
+
+            return await bookings.ToListAsync();
         }
 
-        public async Task<Booking> GetByIdAsync(int id)
+
+        public async Task<Booking> GetByIdAsync(int id, string userId)
         {
-            return await _context.Bookings.FindAsync(id);
+            if (id == null)
+            {
+                throw new Exception("Id is null");
+            }
+            return await _context.Bookings.FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
         }
 
         public async Task<Invoice> GetInvoiceByBookingId(int bookingId)

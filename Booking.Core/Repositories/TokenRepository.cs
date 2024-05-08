@@ -24,7 +24,7 @@ namespace BookingHotel.Core.Repositories
             // Create claims
             var claims = new List<Claim>
             {
-                new Claim("username", user.UserName) // Custom claim type
+                new Claim("Id", user.Id) // Custom claim type
             };
 
             foreach (var role in roles)

@@ -10,11 +10,11 @@ namespace BookingHotel.Core.IServices
 {
     public interface IBookingService
     {
-        Task<IEnumerable<Booking>> GetAllAsync();
-        Task<Booking> GetByIdAsync(int id);
-        Task CreateBooking(BookingDTO booking);
+        Task<Booking> GetByIdAsync(int UseIid, string userId);
+        Task<Booking> CreateBookingAsync(BookingDTO booking, string userId);
         Task UpdateAsync(Booking booking);
         Task RemoveAsync(int Id);
         Task<Invoice> GetInvoiceByBookingId(int bookingId);
+        Task<IEnumerable<Booking>> GetAllAsync(int pageSize, int pageNumber, string userId);
     }
 }

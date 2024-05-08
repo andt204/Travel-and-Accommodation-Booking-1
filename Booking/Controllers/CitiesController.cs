@@ -19,11 +19,13 @@ namespace BookingHotel.Controllers {
         }
         [Authorize(Roles = Roles.User + ", " + Roles.Owner)]
         [HttpGet]
-        public async Task<IEnumerable<CityDto>> GetAllAsync() {
-            var cities = await _cityService.ListAsync();
+        public async Task<IEnumerable<CityDto>> GetAllAsync([FromQuery] int pageSize = 5, [FromQuery] int pageNumber = 1)
+        {
+            var cities = await _cityService.ListAsync(pageSize, pageNumber);
             var resources = _mapper.Map<IEnumerable<City>, IEnumerable<CityDto>>(cities);
             return resources;
         }
+
         [Authorize(Roles = Roles.Owner)]
         [HttpPost]
         public async Task<IActionResult> PostAsync([FromBody] SaveCityDto resource) {

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BookingHotel.Core.IRepositories {
     public interface ICityRepository {
-        Task<IEnumerable<City>> ListAsync();
+        Task<IEnumerable<City>> ListAsync(int pageSize, int pageNumber);
         Task AddAsync(City city);
         Task<City> FindByIdAsync(int id);
         void Update(City city);

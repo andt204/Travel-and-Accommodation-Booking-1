@@ -16,34 +16,49 @@ namespace BookingHotel.Core.Services
     {
         private readonly IUnitOfWork _unitOfWorks;
         private readonly IBookingRepository _bookingRepository;
-        public BookingService(IBookingRepository bookingRepository, IUnitOfWork unitOfWork)
+        private readonly IIdentityService _identityService;
+        public BookingService(IBookingRepository bookingRepository, IUnitOfWork unitOfWork, IIdentityService identityService)
         {
             _unitOfWorks = unitOfWork;
             _bookingRepository = bookingRepository;
+            _identityService = identityService;
         }
 
-        public async Task CreateBooking(BookingDTO booking)
+        public async Task<Booking> CreateBookingAsync(BookingDTO booking, string userId)
         {
             if(booking == null)
             {
                 throw new ArgumentNullException(nameof(booking));
             }
-            _ = _bookingRepository.CreateBooking(booking);
+            var bookingEntity = new Booking
+            {
+                StartDate = booking.StartDate,
+                EndDate = booking.EndDate,
+                status = booking.status,
+                RoomId = booking.RoomId,
+                UserId = userId
+            };
+            _ = _bookingRepository.CreateBookingAsync(bookingEntity);
             await _unitOfWorks.CompleteAsync();
+            return bookingEntity;
         }
 
-        public async Task<IEnumerable<Booking>> GetAllAsync()
+        public async Task<IEnumerable<Booking>> GetAllAsync(int pageSize, int pageNumber,string user)
         {
-            return await _bookingRepository.GetAllAsync();
+            if(user == null)
+            {
+                throw new Exception("User not found");
+            }
+            return await _bookingRepository.GetAllAsync(pageSize, pageNumber, user);
         }
 
-        public async Task<Booking> GetByIdAsync(int id)
+        public async Task<Booking> GetByIdAsync(int id, string userId)
         {
             if (id == null)
             {
                  throw new Exception("Id is null");
             }
-            return await _bookingRepository.GetByIdAsync(id);
+            return await _bookingRepository.GetByIdAsync(id, userId);
         }
 
         public async Task<Invoice> GetInvoiceByBookingId(int bookingId)

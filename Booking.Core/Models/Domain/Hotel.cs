@@ -12,6 +12,7 @@ namespace BookingHotel.Core.Models.Domain {
         public string Address { get; set; }
 
         public int CityId { get; set; }
+        public string UserId { get; set; }
 
         public int Rating { get; set; }
         public int NumOfRoom { get; set; }
@@ -19,6 +20,7 @@ namespace BookingHotel.Core.Models.Domain {
 
         public Gallery Gallery { get; set; }
         public City City { get; set; }
+        public User User { get; set; }
 
         public IList<HotelAmentities> HotelAmentities { get; set; }
     }
