@@ -19,7 +19,6 @@ namespace BookingHotel.Core.Services {
             _cityRepository = cityRepository;
             _unitOfWork = unitOfWork;
         }
-
         public async Task<IEnumerable<City>> ListAsync(int page, int pageSize) {
             return await _cityRepository.ListAsync(page, pageSize);
         }

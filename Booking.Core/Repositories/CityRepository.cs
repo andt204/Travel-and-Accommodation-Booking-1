@@ -15,6 +15,7 @@ namespace BookingHotel.Core.Repositories {
 
         public override async Task AddAsync(City entity) {
              await base.AddAsync(entity);
+
         }
 
         public override async Task<City> FindByIdAsync(int id) {

@@ -23,9 +23,11 @@ namespace BookingHotel.Controllers {
         [HttpGet]
         public async Task<IEnumerable<CityDto>> GetAllAsync([FromQuery] int page = 1, [FromQuery] int pageSize = 10) {
             var cities = await _cityService.ListAsync(page, pageSize);
+
             var resources = _mapper.Map<IEnumerable<City>, IEnumerable<CityDto>>(cities);
             return resources;
         }
+
         [Authorize(Roles = Roles.Owner)]
         [HttpPost]
         public async Task<IActionResult> PostAsync([FromBody] SaveCityDto resource) {
