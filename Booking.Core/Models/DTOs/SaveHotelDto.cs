@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
 namespace BookingHotel.Core.Models.DTOs {
     public class SaveHotelDto {
@@ -29,6 +30,10 @@ namespace BookingHotel.Core.Models.DTOs {
 
         [Required(ErrorMessage = "Gallery ID is required")]
         public int GalleryId { get; set; }
+
+        [Required(ErrorMessage = "Thumbnail File is required")]
+        public IFormFile ThumbnailFile { get; set; }
+
     }
 }
 

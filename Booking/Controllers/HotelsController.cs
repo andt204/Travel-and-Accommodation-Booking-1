@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Booking.Controllers {
     [Route("/api/hotels")]
-    [Authorize]
+    //[Authorize]
     public class HotelsController : Controller {
 
         private readonly IHotelService _hotelService;
@@ -21,28 +21,51 @@ namespace Booking.Controllers {
             _mapper = mapper;
         }
         [HttpGet]
-        [Authorize(Roles = Roles.User + ", " + Roles.Owner)]
+        //[Authorize(Roles = Roles.User + ", " + Roles.Owner)]
         public async Task<IActionResult> GetAllAsync([FromQuery] int page = 1, [FromQuery]  int pageSize = 10) {
             var hotels = await _hotelService.ListAsync(page, pageSize);
             var hotelDtos = _mapper.Map<IEnumerable<Hotel>, IEnumerable<HotelDto>>(hotels);
             return Ok(hotelDtos);
         }
 
-
         [HttpPost]
-        [Authorize(Roles = Roles.Owner)]
-        public async Task<IActionResult> PostAsync([FromBody] SaveHotelDto resource) {
+        //[Authorize(Roles = Roles.Owner)]
+        public async Task<IActionResult> PostAsync([FromForm] SaveHotelDto resource) {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState.GetErrorMessages());
 
+            if (resource.ThumbnailFile == null || resource.ThumbnailFile.Length == 0) {
+                return BadRequest("Thumbnail is required.");
+            }
+
+            // Process the thumbnail file
+            string thumbnailUrl;
+            using (var memoryStream = new MemoryStream()) {
+                await resource.ThumbnailFile.CopyToAsync(memoryStream);
+
+                // Convert byte array to Base64 string
+                string base64String = Convert.ToBase64String(memoryStream.ToArray());
+
+                // Generate the thumbnail URL (or path)
+                thumbnailUrl = $"data:image/jpeg;base64,{base64String}";
+            }
+
+            // Map SaveHotelDto to Hotel entity
             var hotel = _mapper.Map<SaveHotelDto, Hotel>(resource);
-            var result = await _hotelService.SaveAsync(hotel);
+
+            // Set the thumbnail property of the hotel entity
+            hotel.ThumbnailPath = thumbnailUrl;
+
+            var result = await _hotelService.SaveAsync(hotel, resource.ThumbnailFile);
 
             if (!result.Success)
                 return BadRequest(result.Message);
 
             return Ok(result);
         }
+
+
+
 
         [HttpPut("{id}")]
         [Authorize(Roles = Roles.Owner)]
@@ -95,6 +118,7 @@ namespace Booking.Controllers {
 
             return Ok(hotelDtos);
         }
+
     }
 }
 
