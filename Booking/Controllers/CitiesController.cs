@@ -6,6 +6,7 @@ using BookingHotel.Core.Models.UserRoles;
 using BookingHotel.Core.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using System.Drawing.Printing;
 
 namespace BookingHotel.Controllers {
@@ -19,7 +20,7 @@ namespace BookingHotel.Controllers {
             _cityService = cityService;
             _mapper = mapper;
         }
-        [Authorize(Roles = Roles.User + ", " + Roles.Owner)]
+        [Authorize(Roles = Roles.User)]
         [HttpGet]
         public async Task<IEnumerable<CityDto>> GetAllAsync([FromQuery] int page = 1, [FromQuery] int pageSize = 10) {
             var cities = await _cityService.ListAsync(page, pageSize);
@@ -76,6 +77,44 @@ namespace BookingHotel.Controllers {
             var topVisitedCities = await _cityService.GetTopVisitedCitiesAsync(count, page, pageSize);
             var cityDtos = _mapper.Map<IEnumerable<City>, IEnumerable<CityDto>>(topVisitedCities);
             return Ok(cityDtos);
+        }
+
+        private void ValidateFileUpload(ImageUpDTO imageUpDTO)
+        {
+            var allowedExtensions = new string[] { ".jpg", ".jpeg", ".png" };
+
+            if (!allowedExtensions.Contains(Path.GetExtension(imageUpDTO.File.FileName)))
+            {
+                ModelState.AddModelError("File", "Upsupported file extension");
+            }
+
+            if (imageUpDTO.File.Length > 2 * 1024 * 1024)
+            {
+                ModelState.AddModelError("Files", "File size cannot exceed 2MB");
+            }
+
+            /*if (ModelState.ErrorCount > 0)
+            {
+                throw new ValidationException(ModelState);
+            }*/
+        }
+
+        [HttpPut("{id}/thumbnail")]
+        public Task<IActionResult> GetThumbnailAsync([FromForm] ImageUpDTO image, int id)
+        {
+            ValidateFileUpload(image);
+
+
+            var imageModel = _mapper.Map<ImageUpDTO, Image>(image);
+
+            var upImg = _cityService.UploadImage(imageModel);
+
+            var result = _cityService.UpdateAsync(id, new City { Thumbnail = upImg.Result.ToString()});
+
+            if (!result.Result.Success)
+                return Task.FromResult<IActionResult>(BadRequest(result.Result.Message));
+
+            return Task.FromResult<IActionResult>(Ok(result.Result));
         }
     }
 }

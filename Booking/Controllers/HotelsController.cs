@@ -21,7 +21,7 @@ namespace Booking.Controllers {
             _mapper = mapper;
         }
         [HttpGet]
-        [Authorize(Roles = Roles.User + ", " + Roles.Owner)]
+        [Authorize(Roles = Roles.User)]
         public async Task<IActionResult> GetAllAsync([FromQuery] int page = 1, [FromQuery]  int pageSize = 10) {
             var hotels = await _hotelService.ListAsync(page, pageSize);
             var hotelDtos = _mapper.Map<IEnumerable<Hotel>, IEnumerable<HotelDto>>(hotels);

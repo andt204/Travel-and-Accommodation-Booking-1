@@ -14,16 +14,14 @@ namespace BookingHotel.Controllers
 {
     [Route("api/user/bookings")]
     [ApiController]
-    [Authorize(Roles = Roles.User)] // Apply authorization at the controller level
+    [Authorize(Roles = Roles.User)]
     public class UserBookingController : ControllerBase
     {
         private readonly IBookingService _bookingService;
         private readonly IMapper _mapper;
-        private readonly UserManager<User> _userManager;
 
-        public UserBookingController(IBookingService bookingService, IMapper mapper, UserManager<User> userManager)
+        public UserBookingController(IBookingService bookingService, IMapper mapper)
         {
-            _userManager = userManager;
             _mapper = mapper;
             _bookingService = bookingService;
         }
@@ -86,7 +84,9 @@ namespace BookingHotel.Controllers
         [HttpGet("{id}/invoice")]
         public async Task<IActionResult> GetBookingInvoice(int id)
         {
-            var invoice = await _bookingService.GetInvoiceByBookingId(id);
+            //take user id from token
+            var userId = User.FindFirst("Id")?.Value;
+            var invoice = await _bookingService.GetInvoiceByBookingId(id, userId);
             if (invoice == null)
                 return NotFound();
 

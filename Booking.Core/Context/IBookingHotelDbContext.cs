@@ -19,6 +19,7 @@ namespace BookingHotel.Core.Context
         DbSet<RoomClasses> RoomsClasses { get; set;}
         DbSet<Booking> Bookings { get; set; }
         DbSet<Invoice> Invoices { get; set; }
+        DbSet<Image> Images { get; set; }
         DbSet<Discount> Discounts { get; set; }
         DbSet<RoomDiscount> RoomDiscounts { get; set; }
 

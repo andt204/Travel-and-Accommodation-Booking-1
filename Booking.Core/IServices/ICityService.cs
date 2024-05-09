@@ -16,5 +16,7 @@ namespace BookingHotel.Core.IServices {
         Task<CityResponse> UpdateAsync(int id, City city);
         Task<CityResponse> DeleteAsync(int id);
         Task<IEnumerable<City>> GetTopVisitedCitiesAsync(int count, int page = 1, int pageSize = 5);
+
+        Task<ImageUploadResponse> UploadImage(Image image);
     }
 }
