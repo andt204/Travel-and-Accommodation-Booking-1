@@ -61,9 +61,9 @@ namespace BookingHotel.Core.Services
             return await _bookingRepository.GetByIdAsync(id, userId);
         }
 
-        public async Task<Invoice> GetInvoiceByBookingId(int bookingId)
+        public async Task<Invoice> GetInvoiceByBookingId(int bookingId, string userId)
         {
-            return await _bookingRepository.GetInvoiceByBookingId(bookingId);
+            return await _bookingRepository.GetInvoiceByBookingId(bookingId, userId);
         }
 
         public async Task RemoveAsync(int Id)

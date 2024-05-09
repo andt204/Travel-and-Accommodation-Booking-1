@@ -38,6 +38,7 @@
     <Folder Include="Areas\Admin\Views\" />
     <Folder Include="Models\" />
     <Folder Include="ThumbnailHotel\" />
+    <Folder Include="Images\" />
     <Folder Include="View\" />
   </ItemGroup>
 </Project>

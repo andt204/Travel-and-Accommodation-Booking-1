@@ -57,9 +57,13 @@ namespace BookingHotel.Core.Repositories
             return await _context.Bookings.FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
         }
 
-        public async Task<Invoice> GetInvoiceByBookingId(int bookingId)
+        public async Task<Invoice> GetInvoiceByBookingId(int bookingId, string userId)
         {
-            return await _context.Invoices.FirstOrDefaultAsync(x => x.BookingId == bookingId);
+            if (bookingId == null)
+            {
+                throw new Exception("Booking Id is null");
+            }
+            return await _context.Invoices.FirstOrDefaultAsync(x => x.BookingId == bookingId && x.UserId == userId);
         }
 
         public async Task RemoveAsync(int Id)

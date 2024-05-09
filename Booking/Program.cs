@@ -32,6 +32,7 @@ namespace BookingHotel
             // Add services to the container.
 
             builder.Services.AddControllers();
+            builder.Services.AddHttpContextAccessor();
             builder.Services.AddEndpointsApiExplorer();
 
             builder.Services.AddDbContext<BookingHotelDbContext>(opts =>

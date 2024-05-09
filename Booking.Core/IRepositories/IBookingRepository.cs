@@ -15,7 +15,7 @@ namespace BookingHotel.Core.IRepositories
         Task CreateBookingAsync(Booking booking);
         Task UpdateAsync(Booking booking);
         Task RemoveAsync(int Id);
-        Task<Invoice> GetInvoiceByBookingId(int bookingId);
+        Task<Invoice> GetInvoiceByBookingId(int bookingId, string userId);
         Task<IEnumerable<Booking>> GetAllAsync(int pageSize, int pageNumber, string user);
     }
 }
