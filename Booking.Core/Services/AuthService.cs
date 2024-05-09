@@ -68,7 +68,6 @@ namespace BookingHotel.Core.Services
             }
             return new RegisterResponse (false, register.Email, null!, "User created fail");
         }
-
         //function to send email
         public async Task<string> SendEmail(string email, string subject, string htmlMessage)
         {

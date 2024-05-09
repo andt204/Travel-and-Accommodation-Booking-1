@@ -16,9 +16,10 @@ namespace BookingHotel.Core.Services {
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<IEnumerable<Hotel>> ListAsync() {
-            return await _hotelRepository.ListAsync();
+        public async Task<IEnumerable<Hotel>> ListAsync(int page, int pageSize) {
+            return await _hotelRepository.ListAsync(page, pageSize);
         }
+
         public async Task<HotelResponse> SaveAsync(Hotel hotel) {
             try {
                 if (hotel == null) {
@@ -97,12 +98,20 @@ namespace BookingHotel.Core.Services {
             }
         }
 
-        public async Task<IEnumerable<Hotel>> SearchAsync(string keyword = null, int? minCapacity = null, int? maxCapacity = null) {
+        public async Task<IEnumerable<Hotel>> SearchAsync(string keyword = null, int? minCapacity = null, int? maxCapacity = null, int page = 1, int pageSize = 10) {
             if (string.IsNullOrEmpty(keyword) && minCapacity == null && maxCapacity == null) {
-                return await _hotelRepository.ListAsync();
+                return await _hotelRepository.ListAsync(page, pageSize);
             }
 
-            return await _hotelRepository.SearchAsync(keyword ?? "", minCapacity ?? 0, maxCapacity ?? 0);
+            return await _hotelRepository.SearchAsync(keyword ?? "", minCapacity ?? 0, maxCapacity ?? 0, page, pageSize);
         }
+
+        //public async Task<IEnumerable<Hotel>> SearchAsync(string keyword = null, int? minCapacity = null, int? maxCapacity = null) {
+        //    if (string.IsNullOrEmpty(keyword) && minCapacity == null && maxCapacity == null) {
+        //        return await _hotelRepository.ListAsync();
+        //    }
+
+        //    return await _hotelRepository.SearchAsync(keyword ?? "", minCapacity ?? 0, maxCapacity ?? 0);
+        //}
     }
 }

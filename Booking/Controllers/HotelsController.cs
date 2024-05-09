@@ -22,11 +22,12 @@ namespace Booking.Controllers {
         }
         [HttpGet]
         [Authorize(Roles = Roles.User + ", " + Roles.Owner)]
-        public async Task<IEnumerable<HotelDto>> GetAllAsync() {
-            var hotels = await _hotelService.ListAsync();
-            var resources = _mapper.Map<IEnumerable<Hotel>, IEnumerable<HotelDto>>(hotels);
-            return resources;
+        public async Task<IActionResult> GetAllAsync([FromQuery] int page = 1, [FromQuery]  int pageSize = 10) {
+            var hotels = await _hotelService.ListAsync(page, pageSize);
+            var hotelDtos = _mapper.Map<IEnumerable<Hotel>, IEnumerable<HotelDto>>(hotels);
+            return Ok(hotelDtos);
         }
+
 
         [HttpPost]
         [Authorize(Roles = Roles.Owner)]
@@ -84,11 +85,11 @@ namespace Booking.Controllers {
         }
         [HttpGet("search")]
         [Authorize(Roles = Roles.User + ", " + Roles.Owner)]
-        public async Task<IActionResult> SearchAsync([FromQuery] HotelSearchDto hotelSearch) {
+        public async Task<IActionResult> SearchAsync([FromQuery] HotelSearchDto hotelSearch, int page = 1, int pageSize = 3) {
             if (hotelSearch == null)
                 return BadRequest("Search criteria cannot be empty.");
 
-            var hotels = await _hotelService.SearchAsync(hotelSearch.Keyword, hotelSearch.MinCapacity, hotelSearch.MaxCapacity);
+            var hotels = await _hotelService.SearchAsync(hotelSearch.Keyword, hotelSearch.MinCapacity, hotelSearch.MaxCapacity, page, pageSize);
 
             var hotelDtos = _mapper.Map<IEnumerable<Hotel>, IEnumerable<HotelDto>>(hotels);
 

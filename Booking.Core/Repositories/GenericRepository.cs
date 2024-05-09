@@ -13,9 +13,11 @@ namespace BookingHotel.Core.Repositories {
             this._dbSet = context.Set<TEntity>();
         }
 
-        public virtual async Task<IEnumerable<TEntity>> ListAsync() {
-            return await _dbSet.ToListAsync();
+        public virtual async Task<IEnumerable<TEntity>> ListAsync(int page, int pageSize) {
+            var query = _dbSet.AsQueryable();
+            return await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
         }
+
 
         public virtual async Task AddAsync(TEntity entity) {
             await _dbSet.AddAsync(entity);

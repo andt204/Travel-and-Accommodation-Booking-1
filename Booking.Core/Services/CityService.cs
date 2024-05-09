@@ -2,6 +2,7 @@
 using BookingHotel.Core.IServices;
 using BookingHotel.Core.IUnitOfWorks;
 using BookingHotel.Core.Models.Domain;
+using BookingHotel.Core.Repositories;
 using BookingHotel.Core.Services.Communication;
 using System;
 using System.Collections.Generic;
@@ -19,8 +20,8 @@ namespace BookingHotel.Core.Services {
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<IEnumerable<City>> ListAsync() {
-            return await _cityRepository.ListAsync();
+        public async Task<IEnumerable<City>> ListAsync(int page, int pageSize) {
+            return await _cityRepository.ListAsync(page, pageSize);
         }
         public async Task<CityResponse> SaveAsync(City city) {
             try {
@@ -78,5 +79,10 @@ namespace BookingHotel.Core.Services {
                 return new CityResponse($"An error occurred when deleting the city: {ex.Message}");
             }
         }
+
+        public async Task<IEnumerable<City>> GetTopVisitedCitiesAsync(int count, int page = 1, int pageSize = 5) {
+            return await _cityRepository.GetTopVisitedCitiesAsync(count, page, pageSize);
+        }
+
     }
 }

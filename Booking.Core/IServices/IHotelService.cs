@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 
 namespace BookingHotel.Core.IServices {
     public interface IHotelService {
-        Task<IEnumerable<Hotel>> ListAsync();
+        Task<IEnumerable<Hotel>> ListAsync(int page, int pageSize);
         Task<HotelResponse> SaveAsync(Hotel hotel);
         Task<HotelResponse> UpdateAsync(int id, Hotel hotel);
         Task<HotelResponse> DeleteAsync(int id);
         Task<HotelResponse> FindByIdAsync(int id);
-        Task<IEnumerable<Hotel>> SearchAsync(string keyword = null, int? minCapacity = null, int? maxCapacity = null);
+        Task<IEnumerable<Hotel>> SearchAsync(string keyword = null, int? minCapacity = null, int? maxCapacity = null, int page = 1, int pageSize = 10);
     }
 }
