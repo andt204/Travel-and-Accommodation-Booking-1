@@ -29,10 +29,10 @@ namespace BookingHotel.Core.Services
 
         public async Task<RegisterResponse> Register(RegisterDTO register)
         {
+            //check null
             if (register == null)
-            {
                 throw new ArgumentNullException(nameof(register));
-            }
+            
             var identityUser = new User
             {
                 Email = register.Email,
@@ -40,35 +40,24 @@ namespace BookingHotel.Core.Services
             };
             var identityResult = await _userManager.CreateAsync(identityUser, register.Password);
 
-            if (identityResult.Succeeded)
-            {
-                //generate token for verify email
-                var token = await _userManager.GenerateEmailConfirmationTokenAsync(identityUser);
-                //encoder
-                var code = System.Web.HttpUtility.UrlEncode(token);
-                //generate link for verify email
-                var link = $"https://localhost:5001/api/auth/verify-email?email={register.Email}&token={code}";
-                //generate email content
-                var content = $"<a href='{link}'>Click here to verify email</a>";
-                //send email
-                _ = SendEmail(register.Email, "Verify email", content);
-                //add role for user
-                if (_userManager.Options.SignIn.RequireConfirmedEmail)
-                {
-                    if (register.Roles != null && register.Roles.Any())
-                    {
-                        identityResult = await _userManager.AddToRolesAsync(identityUser, register.Roles);
-                        if (identityResult.Succeeded)
-                        {
-                            return new RegisterResponse(true, register.Email, code, "User created success");
+            if (!identityResult.Succeeded)
+                return new RegisterResponse(false, register.Email, null!, "User creation failed");
 
-                        }
-                    }
-                }
-            }
-            return new RegisterResponse (false, register.Email, null!, "User created fail");
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(identityUser);
+            var code = System.Web.HttpUtility.UrlEncode(token);
+            var link = $"https://localhost:5001/api/auth/verify-email?email={register.Email}&token={code}";
+            var content = $"<a href='{link}'>Click here to verify email</a>";
+            _ = await SendEmail(register.Email, "Verify email", content);
+
+            if (!_userManager.Options.SignIn.RequireConfirmedEmail || (register.Roles == null || !register.Roles.Any()))
+                return new RegisterResponse(true, register.Email, code, "User created successfully");
+
+            identityResult = await _userManager.AddToRolesAsync(identityUser, register.Roles);
+            if (!identityResult.Succeeded)
+                return new RegisterResponse(false, register.Email, null!, "Failed to add roles to user");
+
+            return new RegisterResponse(true, register.Email, code, "User created successfully");
         }
-
         //function to send email
         public async Task<string> SendEmail(string email, string subject, string htmlMessage)
         {
@@ -79,59 +68,39 @@ namespace BookingHotel.Core.Services
         public async Task<LoginResponse> Signin(LoginDTO loginDTO)
         {
             if (loginDTO == null)
-            {
                 return new LoginResponse(true, null!, "Login Fail", null);
-            }
 
             var user = await _userManager.FindByEmailAsync(loginDTO.Email);
-            if (user != null)
-            {
-                var result = await _userManager.CheckPasswordAsync(user, loginDTO.Password);
-                if (result)
-                {
-                    //get role for this user
-                    var roles = await _userManager.GetRolesAsync(user);
-                    if (roles != null)
-                    {
-                        //generate token
-                        var token = await _tokenRepository.GenerateToken(user, roles.ToList());
+            if (user == null || !user.EmailConfirmed)
+                return new LoginResponse(true, null!, user == null ? "User not found" : "Email not verified", null);
 
-                        var userToken = new LoginResponseDTO
-                        {
-                            Token = token
-                        };
+            var result = await _userManager.CheckPasswordAsync(user, loginDTO.Password);
+            if (!result)
+                return new LoginResponse(true, null!, "Login Fail", null);
 
-                        return new LoginResponse(true, token!, "Login success", roles.ToArray());
-                        //return Object.ReferenceEquals(userToken, null) ? "Login success" : "Login failed";
-                    }
-                    return new LoginResponse(true, null!, "Login Fail", null);
-                }
-            }
-            return new LoginResponse(true, null!, "Login Fail", null);
+            var roles = await _userManager.GetRolesAsync(user);
+            if (roles == null || !roles.Any())
+                return new LoginResponse(true, null!, "User has no roles assigned", null);
+
+            var token = _tokenRepository.GenerateToken(user, roles.ToList());
+            return new LoginResponse(true, token!, "Login success", roles.ToArray());
         }
 
-        public Task<GeneralResponse> ConfirmVerifyEmail(string email, string token)
-        {
-            if(email == null || token == null)
-            {
-                return Task.FromResult(new GeneralResponse(false, "Email or token is null"));
-            }
-            var user = _userManager.FindByEmailAsync(email).Result;
-            if(user == null)
-            {
-                return Task.FromResult(new GeneralResponse(false, "User not found"));
-            }
 
-            //decode token
+        public async Task<GeneralResponse> ConfirmVerifyEmail(string email, string token)
+        {
+            if (email == null || token == null)
+                return new GeneralResponse(false, "Email or token is null");
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+                return new GeneralResponse(false, "User not found");
+
             token = System.Web.HttpUtility.UrlDecode(token);
-            //confirm verify email
-            var result = _userManager.ConfirmEmailAsync(user, token).Result;
-            //if success
-            if(result.Succeeded)
-            {
-                return Task.FromResult(new GeneralResponse(true, "Verify email success"));
-            }
-            return Task.FromResult(new GeneralResponse(false, "Verify email fail"));
+            var result = await _userManager.ConfirmEmailAsync(user, token);
+            return result.Succeeded
+                ? new GeneralResponse(true, "Verify email success")
+                : new GeneralResponse(false, "Verify email failed");
         }
     }
 }

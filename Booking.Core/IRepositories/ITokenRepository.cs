@@ -9,6 +9,6 @@ namespace BookingHotel.Core.IRepositories
 {
     public interface ITokenRepository
     {
-        Task<string> GenerateToken(IdentityUser user, List<string> roles);
+        string GenerateToken(IdentityUser user, List<string> roles);
     }
 }

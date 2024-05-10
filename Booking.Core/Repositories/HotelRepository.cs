@@ -11,31 +11,30 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace BookingHotel.Core.Repositories {
-    public class HotelRepository : BaseRepository, IHotelRepository {
+    public class HotelRepository : GenericRepository<Hotel>, IHotelRepository {
         public HotelRepository(BookingHotelDbContext context) : base(context) {
         }
 
-        public async Task<IEnumerable<Hotel>> ListAsync() {
-            return await _context.Hotels.ToListAsync();
+        public override Task AddAsync(Hotel entity) {
+            return base.AddAsync(entity);
         }
 
-        public async Task AddAsync(Hotel hotel) {
-            await _context.Hotels.AddAsync(hotel);
+        public override Task<Hotel> FindByIdAsync(int id) {
+            return base.FindByIdAsync(id);
         }
 
-        public async Task<Hotel> FindByIdAsync(int id) {
-            return await _context.Hotels.FindAsync(id);
+        public override Task<IEnumerable<Hotel>> ListAsync(int page, int pageSize) {
+            return base.ListAsync(page, pageSize);
         }
 
-        public void Update(Hotel hotel) {
-            _context.Hotels.Update(hotel);
+        public override void Remove(Hotel entity) {
+            base.Remove(entity);
         }
-
-        public void Remove(Hotel hotel) {
-            _context.Hotels.Remove(hotel);
+        public override void Update(Hotel entity) {
+            base.Update(entity);
         }
-        public async Task<IEnumerable<Hotel>> SearchAsync(string keyword, int minCapacity, int maxCapacity) {
-
+       
+        public async Task<IEnumerable<Hotel>> SearchAsync(string keyword, int minCapacity, int maxCapacity, int page, int pageSize) {
             var query = _context.Hotels.Where(h => h.Name.Contains(keyword) || h.Description.Contains(keyword) || h.Address.Contains(keyword));
 
             if (minCapacity > 0)
@@ -44,7 +43,9 @@ namespace BookingHotel.Core.Repositories {
             if (maxCapacity > 0)
                 query = query.Where(h => h.NumOfRoom <= maxCapacity);
 
-            return await query.ToListAsync();
+            return await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
         }
+
+       
     }
 }

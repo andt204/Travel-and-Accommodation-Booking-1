@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -11,7 +12,7 @@ namespace BookingHotel.Core.Models.DTOs {
         public string Name { get; set; }
 
         [Required(ErrorMessage = "Thumbnail is required")]
-        public string Thumbnail { get; set; }
+        public IFormFile ThumbnailFile { get; set; }
 
     }
 }

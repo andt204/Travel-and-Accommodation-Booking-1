@@ -10,11 +10,22 @@ using System.Threading.Tasks;
 
 namespace BookingHotel.Core.Repositories
 {
-    public class RoomRepository : BaseRepository, IRoomRepository
+    public class RoomRepository : GenericRepository<Room>, IRoomRepository
     {
         public RoomRepository(BookingHotelDbContext context) : base(context)
         {
         }
+
+        public async Task<bool> CheckRoomStatus(int roomId)
+        {
+            var room = await _context.Rooms.FindAsync(roomId);
+            if (room == null)
+            {
+                throw new Exception("Room not found");
+            }
+            return room.Status;
+        }
+
         public async Task CreateRoom(Room room)
         {
             await _context.Rooms.AddAsync(room);

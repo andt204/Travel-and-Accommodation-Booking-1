@@ -2,19 +2,24 @@
 using BookingHotel.Core.IServices;
 using BookingHotel.Core.Models.Domain;
 using BookingHotel.Core.Models.DTOs;
-using BookingHotel.Core.Services.Communication;
+using BookingHotel.Core.Models.UserRoles;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace BookingHotel.Controllers
 {
     [Route("api/user/bookings")]
     [ApiController]
+    [Authorize(Roles = Roles.User)]
     public class UserBookingController : ControllerBase
     {
         private readonly IBookingService _bookingService;
-        private readonly IMapper  _mapper;
+        private readonly IMapper _mapper;
+
         public UserBookingController(IBookingService bookingService, IMapper mapper)
         {
             _mapper = mapper;
@@ -22,71 +27,70 @@ namespace BookingHotel.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetUserBookings()
+        public async Task<IActionResult> GetUserBookings([FromQuery] int pageSize = 5, [FromQuery] int pageNumber = 1)
         {
-            var result = await _bookingService.GetAllAsync();
+            //take user id from token
+            var userId = User.FindFirst("Id")?.Value;
 
-            if(result == null)
+            if (userId == null)
             {
-                return NotFound();
+                return Unauthorized();
             }
-            var resouces = _mapper.Map<IEnumerable<BookingHotel.Core.Models.Domain.Booking>, IEnumerable<BookingDTO>>(result);
-            return Ok(resouces);
+
+            var bookings = await _bookingService.GetAllAsync(pageSize, pageNumber, userId);
+
+            if (bookings == null || !bookings.Any())
+                return NotFound();
+
+            var bookingDTOs = _mapper.Map<IEnumerable<BookingHotel.Core.Models.Domain.Booking>, IEnumerable<BookingDTO>>(bookings);
+            return Ok(bookingDTOs);
         }
+
 
         [HttpPost]
         public async Task<IActionResult> CreateBooking([FromBody] BookingDTO booking)
         {
-            // Xử lý yêu cầu tạo mới đặt vé của người dùng
-            var result = _bookingService.CreateBooking(booking);
-            //mapping
-            var bookingModel = _mapper.Map<BookingDTO>(booking);
-            if(result == null)
-            {
+            var userId = User.FindFirst("Id")?.Value;
+            var result = await _bookingService.CreateBookingAsync(booking, userId);
+            if (result == null)
                 return BadRequest();
-            }
 
+            var bookingModel = _mapper.Map<BookingHotel.Core.Models.Domain.Booking, BookingDTO>(result);
             return Ok(bookingModel);
         }
 
-        [HttpDelete]
-        [Route("{id}")]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> CancelBooking(int id)
         {
             var result = _bookingService.RemoveAsync(id);
             if (result == null)
-            {
                 return NotFound();
-            }
+
             return Ok(result);
         }
 
-        [HttpGet]
-        [Route("{id}")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetBookingById(int id)
         {
-            // Xử lý yêu cầu lấy thông tin đặt vé của người dùng theo ID
-            var result = await _bookingService.GetByIdAsync(id);
-            if (result == null)
-            {
-                //return string not found
+            //take user id from token
+            var userId = User.FindFirst("Id")?.Value;
+            var booking = await _bookingService.GetByIdAsync(id, userId);
+            if (booking == null)
                 return NotFound();
-            }
-            return Ok(result);
+
+            return Ok(booking);
         }
 
-        [HttpGet]
-        [Route("{id}/invoice")]
+        [HttpGet("{id}/invoice")]
         public async Task<IActionResult> GetBookingInvoice(int id)
         {
-            // Xử lý yêu cầu lấy hóa đơn của đặt vé của người dùng theo ID
-            var result = await _bookingService.GetInvoiceByBookingId(id);
-            if (result == null)
-            {
-                //return string not found
+            //take user id from token
+            var userId = User.FindFirst("Id")?.Value;
+            var invoice = await _bookingService.GetInvoiceByBookingId(id, userId);
+            if (invoice == null)
                 return NotFound();
-            }
-            return Ok(result);
+
+            return Ok(invoice);
         }
     }
 }

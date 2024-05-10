@@ -1,9 +1,11 @@
 ﻿using BookingHotel.Core.Models.Domain;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -20,17 +22,30 @@ namespace BookingHotel.Core.Context
         public DbSet<RoomClasses> RoomsClasses { get  ; set  ; }
         public DbSet<Booking> Bookings { get  ; set  ; }
         public DbSet<Invoice> Invoices { get  ; set  ; }
+
+        public DbSet<Image> Images { get  ; set  ; }
         public DbSet<Discount> Discounts { get  ; set  ; }
         public DbSet<RoomDiscount> RoomDiscounts { get  ; set  ; }
     
         public BookingHotelDbContext(DbContextOptions<BookingHotelDbContext> options) : base(options) { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
-            // You can config connection string for entity framework in here
+            optionsBuilder.UseSqlServer("Server=localhost;Initial Catalog=BookingHotel;Integrated Security=True;Trust Server Certificate=True; User ID=sa;Password=123;")
+        .LogTo(Console.WriteLine, LogLevel.Information);
             base.OnConfiguring(optionsBuilder);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
+
+            modelBuilder.Entity<Booking>()
+        .ToTable(tb => tb.HasTrigger("trg_BookingRoomUpdateStatus"));
+
+            modelBuilder.Entity<Booking>()
+        .ToTable(tb => tb.HasTrigger("trg_RemoveBookingUpdateStatus"));
+
+            modelBuilder.Entity<Booking>()
+        .ToTable(tb => tb.HasTrigger("UpdateBookingAndRoomStatus"));
+
             base.OnModelCreating(modelBuilder);
         }
         public override int SaveChanges() => base.SaveChanges();
