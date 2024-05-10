@@ -3,9 +3,12 @@ using BookingHotel.Core.IServices;
 using BookingHotel.Core.IUnitOfWorks;
 using BookingHotel.Core.Models.Domain;
 using BookingHotel.Core.Models.DTOs;
+using BookingHotel.Core.Models.UserRoles;
 using BookingHotel.Core.Repositories;
 using BookingHotel.Core.Services.Communication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace BookingHotel.Core.Services
@@ -119,30 +122,60 @@ namespace BookingHotel.Core.Services
             }
         }
 
-        public async Task<HotelResponse> UpdateAsync(int id, Hotel hotel) {
+        public async Task<HotelResponse> UpdateAsync(int id, Hotel hotel, IFormFile thumbnailFile) {
             var existingHotel = await _hotelRepository.FindByIdAsync(id);
 
             if (existingHotel == null)
                 return new HotelResponse("Hotel not found.");
 
-            existingHotel.Name = hotel.Name;
-            existingHotel.Description = hotel.Description;
-            existingHotel.Address = hotel.Address;
-            existingHotel.CityId = hotel.CityId;
-            existingHotel.Rating = hotel.Rating;
-            existingHotel.NumOfRoom = hotel.NumOfRoom;
-            existingHotel.GalleryId = hotel.GalleryId;
-
             try {
+                // Check if a new thumbnail file is provided
+                if (thumbnailFile != null && thumbnailFile.Length > 0) {
+                    // Process the new thumbnail file
+                    byte[] thumbnailBytes;
+                    using (var memoryStream = new MemoryStream()) {
+                        await thumbnailFile.CopyToAsync(memoryStream);
+                        thumbnailBytes = memoryStream.ToArray();
+                    }
+
+                    // Save the new thumbnail to storage
+                    string thumbnailUrl = await _thumbnailStorageService.UploadThumbnail(thumbnailBytes);
+
+                    // Update the thumbnail path in the hotel entity
+                    existingHotel.ThumbnailPath = thumbnailUrl;
+                }
+
+                // Update other hotel properties if provided
+                if (!string.IsNullOrEmpty(hotel.Name))
+                    existingHotel.Name = hotel.Name;
+
+                if (!string.IsNullOrEmpty(hotel.Description))
+                    existingHotel.Description = hotel.Description;
+
+                if (!string.IsNullOrEmpty(hotel.Address))
+                    existingHotel.Address = hotel.Address;
+
+                if (hotel.CityId != 0)
+                    existingHotel.CityId = hotel.CityId;
+
+                if (hotel.NumOfRoom != 0)
+                    existingHotel.NumOfRoom = hotel.NumOfRoom;
+
+                if (hotel.GalleryId != 0)
+                    existingHotel.GalleryId = hotel.GalleryId;
+
+                // Update the hotel entity in the repository
                 _hotelRepository.Update(existingHotel);
                 await _unitOfWork.CompleteAsync();
 
                 return new HotelResponse(existingHotel, "Update Success");
             } catch (Exception ex) {
-                // Do some logging stuff
+                // Log the error
+                // Return error response
                 return new HotelResponse($"An error occurred when updating the hotel: {ex.Message}");
             }
         }
+
 
         public async Task<HotelResponse> DeleteAsync(int id) {
             var existingHotel = await _hotelRepository.FindByIdAsync(id);
@@ -181,6 +214,42 @@ namespace BookingHotel.Core.Services
             }
 
             return await _hotelRepository.SearchAsync(keyword ?? "", minCapacity ?? 0, maxCapacity ?? 0, page, pageSize);
+        }
+
+        [HttpPut("{id}/thumbnail")]
+        [Authorize(Roles = Roles.Owner)]
+        public async Task<HotelResponse> UpdateThumbnailAsync(int id, Hotel hotel, [FromForm] IFormFile thumbnailFile) {
+            var existingHotel = await _hotelRepository.FindByIdAsync(id);
+
+            if (existingHotel == null)
+                return new HotelResponse("Hotel not found.");
+
+            try {
+                // Check if a new thumbnail file is provided
+                if (thumbnailFile != null && thumbnailFile.Length > 0) {
+                    // Process the new thumbnail file
+                    byte[] thumbnailBytes;
+                    using (var memoryStream = new MemoryStream()) {
+                        await thumbnailFile.CopyToAsync(memoryStream);
+                        thumbnailBytes = memoryStream.ToArray();
+                    }
+
+                    // Save the new thumbnail to storage
+                    string thumbnailUrl = await _thumbnailStorageService.UploadThumbnail(thumbnailBytes);
+
+                    // Update the thumbnail path in the hotel entity
+                    existingHotel.ThumbnailPath = thumbnailUrl;
+                }
+
+                _hotelRepository.Update(existingHotel);
+                await _unitOfWork.CompleteAsync();
+
+                return new HotelResponse(existingHotel, "Update Success");
+            } catch (Exception ex) {
+                // Log the error
+                // Return error response
+                return new HotelResponse($"An error occurred when updating the hotel: {ex.Message}");
+            }
         }
     }
 }

@@ -5,6 +5,7 @@ using BookingHotel.Core.Models.Domain;
 using BookingHotel.Core.Models.DTOs;
 using BookingHotel.Core.Models.UserRoles;
 using BookingHotel.Core.Services;
+using BookingHotel.Core.Services.Communication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -68,23 +69,38 @@ namespace Booking.Controllers {
 
 
         [HttpPut("{id}")]
-        [Authorize(Roles = Roles.Owner)]
-        public async Task<IActionResult> PutAsync(int id, [FromBody] SaveHotelDto resource) {
+        //[Authorize(Roles = Roles.Owner)]
+        public async Task<IActionResult> PutAsync(int id, [FromForm] SaveHotelDto resource) {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState.GetErrorMessages());
 
+            if (resource.ThumbnailFile == null || resource.ThumbnailFile.Length == 0) {
+                return BadRequest("Thumbnail is required.");
+            }
+            // Process the thumbnail file
+            string thumbnailUrl;
+            using (var memoryStream = new MemoryStream()) {
+                await resource.ThumbnailFile.CopyToAsync(memoryStream);
+
+                // Convert byte array to Base64 string
+                string base64String = Convert.ToBase64String(memoryStream.ToArray());
+
+                // Generate the thumbnail URL (or path)
+                thumbnailUrl = $"data:image/jpeg;base64,{base64String}";
+            }
             var hotel = _mapper.Map<SaveHotelDto, Hotel>(resource);
-            var result = await _hotelService.UpdateAsync(id, hotel);
+
+            // Set the thumbnail property of the hotel entity
+            hotel.ThumbnailPath = thumbnailUrl;
+            var result = await _hotelService.UpdateAsync(id, hotel, resource.ThumbnailFile);
 
             if (!result.Success)
                 return BadRequest(result.Message);
-
-            var hotelDto = _mapper.Map<Hotel, HotelDto>(result.Hotel);
             return Ok(result);
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = Roles.Owner)]
+        //[Authorize(Roles = Roles.Owner)]
         public async Task<IActionResult> DeleteAsync(int id) {
             var result = await _hotelService.DeleteAsync(id);
 
@@ -118,7 +134,6 @@ namespace Booking.Controllers {
 
             return Ok(hotelDtos);
         }
-
     }
 }
 
