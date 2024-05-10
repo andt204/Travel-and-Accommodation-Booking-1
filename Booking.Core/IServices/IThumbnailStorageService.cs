@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BookingHotel.Core.Models.DTOs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,8 @@ namespace BookingHotel.Core.IServices
 {
     public interface IThumbnailStorageService {
         Task<string> UploadThumbnail(byte[] thumbnailBytes);
+        Task<string> GenerateUrlOfImage<T>(T entityModel);
+
     }
 
 }

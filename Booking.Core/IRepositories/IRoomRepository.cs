@@ -14,5 +14,6 @@ namespace BookingHotel.Core.IRepositories
         Task CreateRoom(Room room);
         Task UpdateAsync(Room room);
         Task RemoveAsync(int Id);
+        Task<bool> CheckRoomStatus(int roomId);
     }
 }

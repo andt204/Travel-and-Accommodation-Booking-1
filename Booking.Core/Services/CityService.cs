@@ -20,30 +20,53 @@ namespace BookingHotel.Core.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IHostingEnvironment _webHostEnvironment;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IThumbnailStorageService _thumbnailStorageService;
 
-        public CityService(ICityRepository cityRepository, IUnitOfWork unitOfWork, IHostingEnvironment webHost, IHttpContextAccessor httpContextAccessor = null)
+        public CityService(ICityRepository cityRepository, IUnitOfWork unitOfWork, IHostingEnvironment webHost, IHttpContextAccessor httpContextAccessor = null, IThumbnailStorageService thumbnailStorageService = null)
         {
             _cityRepository = cityRepository;
             _webHostEnvironment = webHost;
             _unitOfWork = unitOfWork;
             _httpContextAccessor = httpContextAccessor;
+            _thumbnailStorageService = thumbnailStorageService;
         }
         public async Task<IEnumerable<City>> ListAsync(int page, int pageSize) {
             return await _cityRepository.ListAsync(page, pageSize);
         }
-        public async Task<CityResponse> SaveAsync(City city) {
+        public async Task<CityResponse> SaveAsync(City city, IFormFile thumbnailFile) {
             try {
                 if (city == null) {
                     throw new ArgumentNullException(nameof(city));
                 }
-                var cityEntity = new City {
-                    Name = city.Name,
-                    VisitedCount = city.VisitedCount,
-                    Thumbnail = city.Thumbnail
-                };
-                _ = _cityRepository.AddAsync(cityEntity);
+
+                // Check if thumbnail file is provided
+                if (thumbnailFile == null || thumbnailFile.Length == 0)
+                {
+                    return new CityResponse("Thumbnail is required.");
+                }
+
+                // Process the thumbnail file
+                byte[] thumbnailBytes;
+                using (var memoryStream = new MemoryStream())
+                {
+                    await thumbnailFile.CopyToAsync(memoryStream);
+                    thumbnailBytes = memoryStream.ToArray();
+                }
+
+                string thumbnailUrl = await _thumbnailStorageService.UploadThumbnail(thumbnailBytes);
+
+                // Get base URL using HttpContextAccessor
+                string baseUrl = $"{_httpContextAccessor.HttpContext.Request.PathBase}";
+                //{ _httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}
+                // Combine base URL with the path to the uploaded thumbnail
+                thumbnailUrl = $"{thumbnailUrl}";
+                //{ baseUrl}/
+                // Set the thumbnail URL to the hotel entity
+                city.ThumbnailPath = thumbnailUrl;
+                
+                _ = _cityRepository.AddAsync(city);
                 await _unitOfWork.CompleteAsync();
-                return new CityResponse(cityEntity, "Create Success");
+                return new CityResponse(city, "Create Success");
             } catch (Exception ex) {
                 return new CityResponse($"An error occurred when saving the city: {ex.Message}");
             }
@@ -57,7 +80,7 @@ namespace BookingHotel.Core.Services
 
             existingCity.Name = city.Name;
             existingCity.VisitedCount = city.VisitedCount;
-            existingCity.Thumbnail = city.Thumbnail;
+            existingCity.ThumbnailPath = city.ThumbnailPath;
 
 
             try {

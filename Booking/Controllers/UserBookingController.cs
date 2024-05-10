@@ -51,7 +51,7 @@ namespace BookingHotel.Controllers
         public async Task<IActionResult> CreateBooking([FromBody] BookingDTO booking)
         {
             var userId = User.FindFirst("Id")?.Value;
-            var result = await _bookingService.CreateBookingAsync(booking, userId); // Assuming CreateBookingAsync is asynchronous
+            var result = await _bookingService.CreateBookingAsync(booking, userId);
             if (result == null)
                 return BadRequest();
 

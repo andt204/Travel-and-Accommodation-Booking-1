@@ -86,6 +86,7 @@ namespace BookingHotel
             builder.Services.AddScoped<ICityService, CityService>();
             builder.Services.AddScoped<IHotelService, HotelService>();
             builder.Services.AddScoped<IIdentityService, IdentityService>();
+            builder.Services.AddScoped<IRoomRepository, RoomRepository>();
             builder.Services.AddScoped<IThumbnailStorageService, ThumbnailStorageService>();
 
             builder.Services.AddAutoMapper(typeof(ModelToResourceProfile));

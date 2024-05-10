@@ -15,9 +15,11 @@ namespace Booking.Controllers {
 
         private readonly IHotelService _hotelService;
         private readonly IMapper _mapper;
+        private readonly IThumbnailStorageService _thumbnailStorageService;
 
-        public HotelsController(IHotelService hotelService, IMapper mapper) {
+        public HotelsController(IHotelService hotelService, IMapper mapper, IThumbnailStorageService thumbnailStorageService) {
             _hotelService = hotelService;
+            _thumbnailStorageService = thumbnailStorageService;
             _mapper = mapper;
         }
         [HttpGet]
@@ -37,18 +39,8 @@ namespace Booking.Controllers {
             if (resource.ThumbnailFile == null || resource.ThumbnailFile.Length == 0) {
                 return BadRequest("Thumbnail is required.");
             }
-
-            // Process the thumbnail file
-            string thumbnailUrl;
-            using (var memoryStream = new MemoryStream()) {
-                await resource.ThumbnailFile.CopyToAsync(memoryStream);
-
-                // Convert byte array to Base64 string
-                string base64String = Convert.ToBase64String(memoryStream.ToArray());
-
-                // Generate the thumbnail URL (or path)
-                thumbnailUrl = $"data:image/jpeg;base64,{base64String}";
-            }
+            //generate file image url to save db
+            string thumbnailUrl = await _thumbnailStorageService.GenerateUrlOfImage(resource);
 
             // Map SaveHotelDto to Hotel entity
             var hotel = _mapper.Map<SaveHotelDto, Hotel>(resource);
