@@ -184,6 +184,7 @@ namespace BookingHotel.Core.Services
                 return new HotelResponse("Hotel not found.");
 
             try {
+
                 _hotelRepository.Remove(existingHotel);
                 await _unitOfWork.CompleteAsync();
 

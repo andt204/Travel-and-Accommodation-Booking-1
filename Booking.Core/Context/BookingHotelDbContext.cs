@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -35,6 +36,16 @@ namespace BookingHotel.Core.Context
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
+
+            modelBuilder.Entity<Booking>()
+        .ToTable(tb => tb.HasTrigger("trg_BookingRoomUpdateStatus"));
+
+            modelBuilder.Entity<Booking>()
+        .ToTable(tb => tb.HasTrigger("trg_RemoveBookingUpdateStatus"));
+
+            modelBuilder.Entity<Booking>()
+        .ToTable(tb => tb.HasTrigger("UpdateBookingAndRoomStatus"));
+
             base.OnModelCreating(modelBuilder);
         }
         public override int SaveChanges() => base.SaveChanges();

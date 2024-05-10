@@ -11,14 +11,17 @@ using System.Drawing.Printing;
 
 namespace BookingHotel.Controllers {
     [Route("/api/cities")]
-    [Authorize]
+    //[Authorize]
     public class CitiesController : Controller {
         private readonly ICityService _cityService;
         private readonly IMapper _mapper;
+        private readonly IThumbnailStorageService _thumbnailStorageService;
 
-        public CitiesController(ICityService cityService, IMapper mapper) {
+        public CitiesController(ICityService cityService, IMapper mapper, IThumbnailStorageService thumbnailStorageService = null)
+        {
             _cityService = cityService;
             _mapper = mapper;
+            _thumbnailStorageService = thumbnailStorageService;
         }
         [Authorize(Roles = Roles.User)]
         [HttpGet]
@@ -29,14 +32,20 @@ namespace BookingHotel.Controllers {
             return resources;
         }
 
-        [Authorize(Roles = Roles.Owner)]
+        //[Authorize(Roles = Roles.Owner)]
         [HttpPost]
-        public async Task<IActionResult> PostAsync([FromBody] SaveCityDto resource) {
+        public async Task<IActionResult> PostAsync([FromForm] SaveCityDto resource) {
             //if (!ModelState.IsValid)
             //    return BadRequest(ModelState.GetErrorMessages());
 
-            var hotel = _mapper.Map<SaveCityDto, City>(resource);
-            var result = await _cityService.SaveAsync(hotel);
+            //generate file image url to save db
+            string thumbnailUrl = await _thumbnailStorageService.GenerateUrlOfImage(resource);
+
+            var city = _mapper.Map<SaveCityDto, City>(resource);
+
+            city.ThumbnailPath = thumbnailUrl;
+
+            var result = await _cityService.SaveAsync(city, resource.ThumbnailFile);
 
             if (!result.Success)
                 return BadRequest(result.Message);
@@ -109,7 +118,7 @@ namespace BookingHotel.Controllers {
 
             var upImg = _cityService.UploadImage(imageModel);
 
-            var result = _cityService.UpdateAsync(id, new City { Thumbnail = upImg.Result.ToString()});
+            var result = _cityService.UpdateAsync(id, new City { ThumbnailPath = upImg.Result.ToString()});
 
             if (!result.Result.Success)
                 return Task.FromResult<IActionResult>(BadRequest(result.Result.Message));

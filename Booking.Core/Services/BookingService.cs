@@ -16,12 +16,12 @@ namespace BookingHotel.Core.Services
     {
         private readonly IUnitOfWork _unitOfWorks;
         private readonly IBookingRepository _bookingRepository;
-        private readonly IIdentityService _identityService;
-        public BookingService(IBookingRepository bookingRepository, IUnitOfWork unitOfWork, IIdentityService identityService)
+        private readonly IRoomRepository _roomRepository;
+        public BookingService(IBookingRepository bookingRepository, IUnitOfWork unitOfWork, IIdentityService identityService, IRoomRepository roomRepository)
         {
             _unitOfWorks = unitOfWork;
             _bookingRepository = bookingRepository;
-            _identityService = identityService;
+            _roomRepository = roomRepository;
         }
 
         public async Task<Booking> CreateBookingAsync(BookingDTO booking, string userId)
@@ -30,11 +30,18 @@ namespace BookingHotel.Core.Services
             {
                 throw new ArgumentNullException(nameof(booking));
             }
+            var roomCheckStatus = await _roomRepository.CheckRoomStatus(booking.RoomId);
+
+            if(roomCheckStatus == true)
+            {
+                throw new Exception("Room is not available");
+            }
+            
             var bookingEntity = new Booking
             {
                 StartDate = booking.StartDate,
                 EndDate = booking.EndDate,
-                status = booking.status,
+                status = true,
                 RoomId = booking.RoomId,
                 UserId = userId
             };
